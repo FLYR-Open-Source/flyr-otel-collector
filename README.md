@@ -2,24 +2,45 @@
 
 Custom OpenTelemetry Collector distribution, built with the
 [OpenTelemetry Collector Builder (OCB)](https://github.com/open-telemetry/opentelemetry-collector/tree/main/cmd/builder)
-from `builder-config.yaml`. Includes FLYR's
-[`datadogtagsprocessor`](https://github.com/FLYR-Open-Source/datadogtagsprocessor),
-which moves or merges resource/span/log attributes into the `ddtags`
-attribute the Datadog exporter reads.
+from `builder-config.yaml`.
 
 Intended to run as the collector image for an `OpenTelemetryCollector`
 custom resource managed by the
 [OpenTelemetry Operator](https://github.com/open-telemetry/opentelemetry-operator).
 
+The image is published to
+[`ghcr.io/flyr-open-source/flyr-otel-collector`](https://github.com/orgs/FLYR-Open-Source/packages/container/package/flyr-otel-collector),
+tagged `<version>` per release (see [Releasing](#releasing)), plus
+`<version>-<sha>` and `latest`.
+
 ## Components
 
-All components are pinned to the OTel Collector/contrib release declared at
-the top of `builder-config.yaml` (currently `v0.157.0`), plus:
+All components below are pinned to the OTel Collector/contrib release
+declared at the top of `builder-config.yaml` (currently `v0.157.0`), except
+FLYR's own processor.
 
-- `datadog_tags` — `github.com/FLYR-Open-Source/datadogtagsprocessor`
+**Receivers:** `otlp`, `filelog`, `hostmetrics`, `k8scluster`,
+`prometheus`, `cloudflare`, `googlecloudspanner`, `httpcheck`, `tcpcheck`,
+`sqlserver`, `sqlquery`
 
-See `builder-config.yaml` for the full receiver/processor/exporter/
-extension/connector list.
+**Processors:** `batch`, `memory_limiter`, `k8sattributes`,
+`resourcedetection`, `attributes`, `resource`, `filter`, `transform`,
+`metricstransform`, `cumulativetodelta`, `cardinalityguardian`
+
+**Exporters:** `otlp`, `debug`, `file`, `loadbalancing`, `datadog`
+
+**Extensions:** `datadog`, `cgroupruntime`
+
+**Connectors:** `datadog`, `signaltometrics`, `routing`
+
+**FLYR custom:**
+
+- `datadog_tags` —
+  [`datadogtagsprocessor`](https://github.com/FLYR-Open-Source/datadogtagsprocessor),
+  which moves or merges resource/span/log attributes into the `ddtags`
+  attribute the Datadog exporter reads.
+
+See `builder-config.yaml` for exact module paths and pinned versions.
 
 ## Building locally
 
