@@ -1,0 +1,79 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+
+  # Add resource attributes shared by every span/log under this resource.
+  resource:
+    attributes:
+      - key: k8s.namespace.name
+        value: my-namespace
+        action: upsert
+      - key: k8s.pod.name
+        value: my-pod
+        action: upsert
+
+  # Add a record-level attribute on spans.
+  attributes/spans:
+    include:
+      match_type: regexp
+      services: [".*"]
+    actions:
+      - key: http.route
+        value: /checkout
+        action: upsert
+      - key: team
+        value: checkout
+        action: upsert
+
+  # Add a record-level attribute on logs via OTTL, since attributesprocessor
+  # only targets spans/metrics.
+  transform/logs:
+    log_statements:
+      - context: log
+        statements:
+          - set(attributes["http.route"], "/checkout")
+
+  datadog_tags:
+    trace_statements:
+      - mode: move
+        context: resource
+        attributes:
+          - k8s.*
+      - mode: merge
+        context: span
+        attributes:
+          - team
+    log_statements:
+      - mode: move
+        context: resource
+        attributes:
+          - k8s.*
+      - mode: merge
+        context: log
+        attributes:
+          - team
+
+exporters:
+  file/traces:
+    path: /tmp/smoke-test/traces.json
+
+  file/logs:
+    path: /tmp/smoke-test/logs.json
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [resource, attributes/spans, batch, datadog_tags]
+      exporters: [file/traces]
+    logs:
+      receivers: [otlp]
+      processors: [resource, transform/logs, batch, datadog_tags]
+      exporters: [file/logs]

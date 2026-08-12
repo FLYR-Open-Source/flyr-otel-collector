@@ -1,0 +1,5 @@
+_build/
+*.log
+*.tmp
+.DS_Store
+.smoke-test-output/
