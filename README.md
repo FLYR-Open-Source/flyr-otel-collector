@@ -24,22 +24,35 @@ extension/connector list.
 ## Building locally
 
 ```bash
-make build-builder
+make build
 ```
 
-Installs `ocb` at the pinned version and builds the collector binary to
-`_build/flyr-otel-collector`.
+Installs `ocb` at the pinned version into `.tools/` and builds the collector
+binary to `_build/flyr-otel-collector`.
+
+The binary is cross-compiled for the container platform (`linux/$(go env
+GOARCH)` by default) rather than your host, so it can be copied straight into
+the image. Override with `TARGET_OS`/`TARGET_ARCH`:
+
+```bash
+make build TARGET_ARCH=amd64
+```
 
 ## Building the Docker image
 
 ```bash
-docker build -t flyr-otel-collector:local .
+make image
 ```
 
-Multi-stage build: `golang:1.26-alpine` runs `make build-builder`, then the
-binary is copied into a `gcr.io/distroless/base-debian12:nonroot` runtime
-image. The image has no baked-in config and no default `CMD` — a `--config`
-path must always be passed at run time.
+Compiles the binary as above, then copies it into a
+`gcr.io/distroless/base-debian12:nonroot` runtime image. The Dockerfile is
+packaging only — it does not compile anything, which is what lets the Go build
+cache persist between builds instead of being discarded with the BuildKit
+instance. `docker build` on its own therefore requires
+`_build/flyr-otel-collector` to already exist.
+
+The image has no baked-in config and no default `CMD` — a `--config` path must
+always be passed at run time.
 
 ### Running it standalone (smoke testing)
 

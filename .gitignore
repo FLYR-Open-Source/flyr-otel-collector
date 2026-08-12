@@ -1,4 +1,6 @@
 _build/
+.tools/
+.go-cache-key
 *.log
 *.tmp
 .DS_Store
