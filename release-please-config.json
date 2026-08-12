@@ -3,7 +3,7 @@
   "packages": {
     ".": {
       "release-type": "simple",
-      "package-name": "flyr-otel-collector",
+      "initial-version": "0.1.0",
       "extra-files": [
         {
           "type": "yaml",
