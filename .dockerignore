@@ -1,5 +1,4 @@
-_build/
-*.log
-*.tmp
-.git/
-.DS_Store
+# Allowlist: the image only needs the prebuilt binary, so keep the build
+# context to that one file.
+*
+!_build/flyr-otel-collector
