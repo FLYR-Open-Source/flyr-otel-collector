@@ -27,6 +27,12 @@ jobs:
           VERSION=$(grep -A5 '^dist:' builder-config.yaml | grep 'version:' | awk '{print $2}')
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
+      - name: Compute lowercase image name
+        id: image
+        run: echo "name=${IMAGE_NAME,,}" >> "$GITHUB_OUTPUT"
+        env:
+          IMAGE_NAME: ${{ env.IMAGE_NAME }}
+
       - name: Verify git tag matches dist.version
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
@@ -46,27 +52,27 @@ jobs:
           push: false
           load: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}-${{ github.sha }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.version }}
+            ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.version }}-${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Run smoke test
         env:
-          COLLECTOR_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}-${{ github.sha }}
+          COLLECTOR_IMAGE: ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.version }}-${{ github.sha }}
         run: ./scripts/smoke-test.sh
 
       - name: Collector logs (always)
         if: always()
         env:
-          COLLECTOR_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}-${{ github.sha }}
+          COLLECTOR_IMAGE: ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.version }}-${{ github.sha }}
         run: docker compose -f docker-compose.smoke-test.yaml -p otel-smoke-test logs collector 2>&1 || true
 
       - name: Clean up smoke test resources
         if: always()
         env:
-          COLLECTOR_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}-${{ github.sha }}
+          COLLECTOR_IMAGE: ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.version }}-${{ github.sha }}
         run: docker compose -f docker-compose.smoke-test.yaml -p otel-smoke-test down --volumes --remove-orphans || true
 
       - name: Log in to GHCR
@@ -80,6 +86,6 @@ jobs:
       - name: Push image
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
-          docker push "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}"
-          docker push "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}-${{ github.sha }}"
-          docker push "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+          docker push "${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.version }}"
+          docker push "${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.version }}-${{ github.sha }}"
+          docker push "${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:latest"
