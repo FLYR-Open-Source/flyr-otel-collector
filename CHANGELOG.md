@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/FLYR-Open-Source/flyr-otel-collector/compare/v0.1.0...v0.1.1) (2026-08-24)
+
+
+### Bug Fixes
+
+* add missing components ([#9](https://github.com/FLYR-Open-Source/flyr-otel-collector/issues/9)) ([82cb9f6](https://github.com/FLYR-Open-Source/flyr-otel-collector/commit/82cb9f6d42cda2fb743ba3707c5aa651e57b4552))
+
 ## 0.1.0 (2026-08-12)
 
 
