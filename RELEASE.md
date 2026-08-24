@@ -6,6 +6,10 @@ come from commit messages, not from a manual bump. A release always ties
 together three things that must match: `dist.version` in `builder-config.yaml`,
 the git tag (`v<version>`), and the image tag pushed to GHCR.
 
+> [!NOTE]
+> You can find the OpenTelemetry contrib release dates here: [https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/release.md#release-schedule](https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/release.md#release-schedule)
+
+
 ## Cutting a release
 
 1. Land work on `main` using [Conventional
