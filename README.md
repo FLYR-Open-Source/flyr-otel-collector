@@ -9,9 +9,7 @@ custom resource managed by the
 [OpenTelemetry Operator](https://github.com/open-telemetry/opentelemetry-operator).
 
 The image is published to
-[`ghcr.io/flyr-open-source/flyr-otel-collector`](https://github.com/orgs/FLYR-Open-Source/packages/container/package/flyr-otel-collector),
-tagged `<version>` per release (see [Releasing](#releasing)), plus
-`<version>-<sha>` and `latest`.
+[`ghcr.io/flyr-open-source/flyr-otel-collector`](https://github.com/FLYR-Open-Source/flyr-otel-collector/pkgs/container/flyr-otel-collector).
 
 ## Components
 
