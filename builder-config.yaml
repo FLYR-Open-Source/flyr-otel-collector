@@ -10,6 +10,9 @@ receivers:
       github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver
       v0.157.0
   - gomod: >-
+      github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kubeletstatsreceiver
+      v0.157.0
+  - gomod: >-
       github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver
       v0.157.0
   - gomod: >-
@@ -85,6 +88,9 @@ extensions:
       v0.157.0
   - gomod: >-
       github.com/open-telemetry/opentelemetry-collector-contrib/extension/cgroupruntimeextension
+      v0.157.0
+  - gomod: >-
+      github.com/open-telemetry/opentelemetry-collector-contrib/extension/k8sleaderelector
       v0.157.0
 connectors:
   - gomod: >-
