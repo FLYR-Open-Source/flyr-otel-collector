@@ -69,7 +69,7 @@ processors:
   - gomod: >-
       github.com/open-telemetry/opentelemetry-collector-contrib/processor/cardinalityguardianprocessor
       v0.157.0
-  - gomod: github.com/FLYR-Open-Source/datadogtagsprocessor v0.1.1
+  - gomod: github.com/FLYR-Open-Source/datadogtagsprocessor v0.1.2
 exporters:
   - gomod: go.opentelemetry.io/collector/exporter/otlpexporter v0.157.0
   - gomod: go.opentelemetry.io/collector/exporter/debugexporter v0.157.0
