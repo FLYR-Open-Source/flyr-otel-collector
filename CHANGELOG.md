@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](https://github.com/FLYR-Open-Source/flyr-otel-collector/compare/v0.1.1...v0.1.2) (2026-08-25)
+
+
+### Bug Fixes
+
+* datadogtagsprocessor patch ([#11](https://github.com/FLYR-Open-Source/flyr-otel-collector/issues/11)) ([946b567](https://github.com/FLYR-Open-Source/flyr-otel-collector/commit/946b567b488939753d4e83a9d5996ea2fef61a42))
+
 ## [0.1.1](https://github.com/FLYR-Open-Source/flyr-otel-collector/compare/v0.1.0...v0.1.1) (2026-08-24)
 
 
