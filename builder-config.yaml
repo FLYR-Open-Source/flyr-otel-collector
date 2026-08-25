@@ -101,4 +101,4 @@ connectors:
       v0.157.0
   - gomod: >-
       github.com/open-telemetry/opentelemetry-collector-contrib/connector/routingconnector
-      v0.157.0
+      v0.159.0
