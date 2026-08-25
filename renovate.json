@@ -5,5 +5,18 @@
   ],
   "ocb": {
     "managerFilePatterns": ["/builder(-config)?.ya?ml$/"]
-  }
+  },
+  "packageRules": [
+    {
+      "groupName": "otel",
+      "groupSlug": "otel",
+      "matchDatasources": [
+        "go"
+      ],
+      "matchPackageNames": [
+        "github.com/open-telemetry/opentelemetry-collector-contrib/**",
+        "go.opentelemetry.io/collector/**"
+      ]
+    }
+  ]
 }
