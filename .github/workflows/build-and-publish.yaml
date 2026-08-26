@@ -26,7 +26,10 @@ jobs:
         run: |
           VERSION=$(grep -A5 '^dist:' builder-config.yaml | grep 'version:' | awk '{print $2}')
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "otel_version=$(scripts/otel-version.sh)" >> "$GITHUB_OUTPUT"
+          # Stripped of its `v` for the image tag; Go module versions and the
+          # telemetrygen image both need the prefix, so the script keeps it.
+          OTEL_VERSION=$(scripts/otel-version.sh)
+          echo "otel_version=${OTEL_VERSION#v}" >> "$GITHUB_OUTPUT"
 
       - name: Compute lowercase image name
         id: image

@@ -45,7 +45,7 @@ it was built against.
 | --- | --- | --- |
 | Git tag | `v0.2.0` | Plain semver; release-please's manifest depends on this |
 | Release title | `v0.159.0/v0.2.0` | `<otel>/<ours>` |
-| Image tag | `v0.159.0-flyr-0.2.0` | `/` is not allowed in a Docker tag, so `-flyr-` is used |
+| Image tag | `0.159.0-flyr-0.2.0` | `/` is not allowed in a Docker tag, so `-flyr-` is used |
 | Image tags | `0.2.0`, `0.2.0-<sha>`, `latest` | Unchanged; `0.2.0` stays the one to pin |
 
 The OTel version is never hand-written anywhere. `scripts/otel-version.sh`
