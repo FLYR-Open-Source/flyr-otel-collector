@@ -1,5 +1,5 @@
 GO ?= go
-BUILDER_VERSION ?= $(shell grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' builder-config.yaml | head -n 1)
+BUILDER_VERSION ?= $(shell ./scripts/otel-version.sh)
 BUILDER_BIN ?= $(CURDIR)/.tools/builder
 COLLECTOR_IMAGE ?= flyr-otel-collector:dev
 

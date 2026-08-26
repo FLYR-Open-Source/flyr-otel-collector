@@ -9,7 +9,7 @@ mkdir -p "$OUTPUT_DIR"
 chmod 777 "$OUTPUT_DIR"
 
 export OTEL_VERSION
-OTEL_VERSION=$(grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' builder-config.yaml | head -n 1)
+OTEL_VERSION=$(scripts/otel-version.sh)
 
 export COLLECTOR_IMAGE="${COLLECTOR_IMAGE:-flyr-otel-collector:dev}"
 
