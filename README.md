@@ -14,7 +14,7 @@ The image is published to
 ## Components
 
 All components below are pinned to the OTel Collector/contrib release
-declared at the top of `builder-config.yaml` (currently `v0.157.0`), except
+declared at the top of `builder-config.yaml`, except
 FLYR's own processor.
 
 **Receivers:** `otlp`, `filelog`, `hostmetrics`, `k8scluster`,
