@@ -25,10 +25,10 @@ the image tags also carry the pinned OpenTelemetry Collector version — see
 3. **Merge that PR when you want to release.** There's no schedule — the PR is a
    queue you drain on your own timing.
 4. Merging re-triggers `release-please.yaml`, which creates tag `v<version>` and
-   the GitHub release, then retitles that release to `v<version>/<otel-version>`.
+   the GitHub release, then retitles that release to `<otel-version>/v<version>`.
 5. The tag push triggers `build-and-publish.yaml`, which verifies the tag
    matches `dist.version`, builds the image, runs the smoke test, and pushes it
-   to GHCR tagged `<version>`, `<version>-otel-<otel-version>`,
+   to GHCR tagged `<version>`, `<otel-version>-flyr-<version>`,
    `<version>-<sha>`, and `latest`.
 
 Nothing is published to GHCR until a release tag exists. Pushes to `main` and
@@ -44,8 +44,8 @@ it was built against.
 | Surface | Example | Notes |
 | --- | --- | --- |
 | Git tag | `v0.2.0` | Plain semver; release-please's manifest depends on this |
-| Release title | `v0.2.0/v0.159.0` | `<ours>/<otel>` |
-| Image tag | `0.2.0-otel-v0.159.0` | `/` is not allowed in a Docker tag, so `-otel-` is used |
+| Release title | `v0.159.0/v0.2.0` | `<otel>/<ours>` |
+| Image tag | `v0.159.0-flyr-0.2.0` | `/` is not allowed in a Docker tag, so `-flyr-` is used |
 | Image tags | `0.2.0`, `0.2.0-<sha>`, `latest` | Unchanged; `0.2.0` stays the one to pin |
 
 The OTel version is never hand-written anywhere. `scripts/otel-version.sh`

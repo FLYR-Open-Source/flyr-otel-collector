@@ -37,4 +37,4 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           TAG: ${{ steps.release.outputs.tag_name }}
-        run: gh release edit "$TAG" --title "$TAG/$(scripts/otel-version.sh)"
+        run: gh release edit "$TAG" --title "$(scripts/otel-version.sh)/$TAG"

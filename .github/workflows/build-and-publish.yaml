@@ -76,7 +76,7 @@ jobs:
           load: true
           tags: |
             ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.version }}
-            ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.version }}-otel-${{ steps.version.outputs.otel_version }}
+            ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.otel_version }}-flyr-${{ steps.version.outputs.version }}
             ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.version }}-${{ github.sha }}
             ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:latest
 
@@ -109,6 +109,6 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
           docker push "${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.version }}"
-          docker push "${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.version }}-otel-${{ steps.version.outputs.otel_version }}"
+          docker push "${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.otel_version }}-flyr-${{ steps.version.outputs.version }}"
           docker push "${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.version }}-${{ github.sha }}"
           docker push "${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:latest"
