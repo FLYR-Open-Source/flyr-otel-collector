@@ -21,11 +21,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Read dist.version from builder-config.yaml
+      - name: Read versions from builder-config.yaml
         id: version
         run: |
           VERSION=$(grep -A5 '^dist:' builder-config.yaml | grep 'version:' | awk '{print $2}')
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          # Stripped of its `v` for the image tag; Go module versions and the
+          # telemetrygen image both need the prefix, so the script keeps it.
+          OTEL_VERSION=$(scripts/otel-version.sh)
+          echo "otel_version=${OTEL_VERSION#v}" >> "$GITHUB_OUTPUT"
 
       - name: Compute lowercase image name
         id: image
@@ -75,6 +79,7 @@ jobs:
           load: true
           tags: |
             ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.version }}
+            ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.otel_version }}-flyr-${{ steps.version.outputs.version }}
             ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.version }}-${{ github.sha }}
             ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:latest
 
@@ -107,5 +112,6 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
           docker push "${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.version }}"
+          docker push "${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.otel_version }}-flyr-${{ steps.version.outputs.version }}"
           docker push "${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.version }}-${{ github.sha }}"
           docker push "${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:latest"

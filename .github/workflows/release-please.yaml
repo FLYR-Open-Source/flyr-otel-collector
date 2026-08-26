@@ -18,7 +18,23 @@ jobs:
           client-id: ${{ secrets.RELEASE_PLEASE_APP_ID }}
           private-key: ${{ secrets.RELEASE_PLEASE_APP_PRIVATE_KEY }}
       - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        id: release
         with:
           token: ${{ steps.app-token.outputs.token }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+
+      # The triggering push is the release-PR merge, so this checkout already has
+      # the bumped builder-config.yaml that otel-version.sh reads.
+      - name: Checkout
+        if: steps.release.outputs.release_created
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # release-please has no release-name template, so the OTel version is
+      # appended after the fact, mirroring open-telemetry/opentelemetry-collector.
+      - name: Add OTel version to release title
+        if: steps.release.outputs.release_created
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          TAG: ${{ steps.release.outputs.tag_name }}
+        run: gh release edit "$TAG" --title "$(scripts/otel-version.sh)/$TAG"
