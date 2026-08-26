@@ -7,6 +7,8 @@
 
 * **deps:** update module github.com/flyr-open-source/datadogtagsprocessor to v0.2.1 ([#21](https://github.com/FLYR-Open-Source/flyr-otel-collector/issues/21)) ([084a942](https://github.com/FLYR-Open-Source/flyr-otel-collector/commit/084a94257bdcafab4fb37b77c4f6d4a8a81cd87c))
 
+* **deps:** update otel to v0.159.0 ([#21](https://github.com/FLYR-Open-Source/flyr-otel-collector/issues/22)) ([95c0ee6](https://github.com/FLYR-Open-Source/flyr-otel-collector/commit/95c0ee6e0f6f3a4278c5c0811d494601f5eb467f))
+
 ## [0.1.2](https://github.com/FLYR-Open-Source/flyr-otel-collector/compare/v0.1.1...v0.1.2) (2026-08-25)
 
 
