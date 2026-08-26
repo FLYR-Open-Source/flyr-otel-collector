@@ -35,7 +35,7 @@ FLYR's own processor.
 
 - `datadog_tags` —
   [`datadogtagsprocessor`](https://github.com/FLYR-Open-Source/datadogtagsprocessor),
-  which moves or merges resource/span/log attributes into the `ddtags`
+  which moves or copies resource/span/log attributes into the `ddtags`
   attribute the Datadog exporter reads.
 
 See `builder-config.yaml` for exact module paths and pinned versions.

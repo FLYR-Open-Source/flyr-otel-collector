@@ -46,7 +46,7 @@ processors:
         context: resource
         attributes:
           - k8s.*
-      - mode: merge
+      - mode: copy
         context: span
         attributes:
           - team
@@ -55,7 +55,7 @@ processors:
         context: resource
         attributes:
           - k8s.*
-      - mode: merge
+      - mode: copy
         context: log
         attributes:
           - team
