@@ -10,6 +10,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  GO_VERSION: "1.27"
 
 jobs:
   build-and-test:
@@ -42,14 +43,14 @@ jobs:
         run: |
           GIT_TAG="${GITHUB_REF#refs/tags/v}"
           if [ "$GIT_TAG" != "${{ steps.version.outputs.version }}" ]; then
-            echo "::error::git tag v$GIT_TAG does not match dist.version ${{ steps.version.outputs.version }} in builder-config.yaml"
+            echo "git tag v$GIT_TAG does not match dist.version ${{ steps.version.outputs.version }} in builder-config.yaml"
             exit 1
           fi
 
       - name: Set up Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version: "1.27"
+          go-version: ${{ env.GO_VERSION }}
           cache: false
 
       # dist.version is excluded from the key so a release-please version bump
@@ -61,9 +62,9 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/go-build
-          key: ocb-${{ runner.os }}-go1.26-${{ hashFiles('.go-cache-key') }}
+          key: ocb-${{ runner.os }}-go${{ env.GO_VERSION }}-${{ hashFiles('.go-cache-key') }}
           restore-keys: |
-            ocb-${{ runner.os }}-go1.26-
+            ocb-${{ runner.os }}-go${{ env.GO_VERSION }}-
 
       - name: Build collector binary
         run: make build
