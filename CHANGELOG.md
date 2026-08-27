@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.0](https://github.com/FLYR-Open-Source/flyr-otel-collector/compare/v0.2.0...v0.3.0) (2026-08-27)
+
+
+### Features
+
+* otel version in release name ([#26](https://github.com/FLYR-Open-Source/flyr-otel-collector/issues/26)) ([69b0750](https://github.com/FLYR-Open-Source/flyr-otel-collector/commit/69b0750391c8a691b9b3a9e7c2d462eeff879bbc))
+
+
+### Bug Fixes
+
+* ci go cache ([#27](https://github.com/FLYR-Open-Source/flyr-otel-collector/issues/27)) ([cf31bb7](https://github.com/FLYR-Open-Source/flyr-otel-collector/commit/cf31bb7fb08a4ab1e4649d00ba23a84fc5930e57))
+
 ## [0.2.0](https://github.com/FLYR-Open-Source/flyr-otel-collector/compare/v0.1.2...v0.2.0) (2026-08-26)
 
 
