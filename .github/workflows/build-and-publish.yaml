@@ -90,6 +90,7 @@ jobs:
           cosign dockerfile verify Dockerfile --certificate-oidc-issuer https://accounts.google.com  --certificate-identity keyless@distroless.iam.gserviceaccount.com --base-image-only=true
 
       - name: Build image
+        id: build
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           context: .
@@ -142,12 +143,12 @@ jobs:
       - name: Sign with Cosign using GitHub OIDC Token
         if: (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'deploy'))
         run: |
-          cosign sign --yes --recursive "${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.pr.outputs.tag }}"
+          cosign sign --yes --recursive "${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.pr.outputs.tag }}@${{ steps.build.outputs.digest }}"
 
       - name: Sign with Cosign using GitHub OIDC Token
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
-          cosign sign --yes --recursive "${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.version }}"
+          cosign sign --yes --recursive "${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.version }}@${{ steps.build.outputs.digest }}"
 
       - name: Verify signature
         if: startsWith(github.ref, 'refs/tags/v')
