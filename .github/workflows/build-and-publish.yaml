@@ -129,30 +129,52 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Push image
+        id: push
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
-          docker push "${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.version }}"
-          docker push "${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.otel_version }}-flyr-${{ steps.version.outputs.version }}"
-          docker push "${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.version }}-${{ github.sha }}"
-          docker push "${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:latest"
+          IMAGE="${{ env.REGISTRY }}/${{ steps.image.outputs.name }}"
+          docker push "$IMAGE:${{ steps.version.outputs.version }}"
+          docker push "$IMAGE:${{ steps.version.outputs.otel_version }}-flyr-${{ steps.version.outputs.version }}"
+          docker push "$IMAGE:${{ steps.version.outputs.version }}-${{ github.sha }}"
+          docker push "$IMAGE:latest"
+
+          # All four tags are the same manifest and cosign keys signatures by
+          # digest, so one signature covers every tag.
+          DIGEST=$(docker buildx imagetools inspect "$IMAGE:${{ steps.version.outputs.version }}" --format '{{.Manifest.Digest}}')
+          echo "ref=$IMAGE@$DIGEST" >> "$GITHUB_OUTPUT"
 
       - name: Push PR preview image
-        if: (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'deploy'))
-        run: docker push "${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.pr.outputs.tag }}"
-
-      - name: Sign with Cosign using GitHub OIDC Token
+        id: push-pr
         if: (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'deploy'))
         run: |
-          cosign sign --yes --recursive "${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.pr.outputs.tag }}@${{ steps.build.outputs.digest }}"
+          IMAGE="${{ env.REGISTRY }}/${{ steps.image.outputs.name }}"
+          docker push "$IMAGE:${{ steps.pr.outputs.tag }}"
 
-      - name: Sign with Cosign using GitHub OIDC Token
+          # The registry manifest digest, which is what cosign signs. It differs
+          # from the build step's digest -- that build never pushed anything.
+          DIGEST=$(docker buildx imagetools inspect "$IMAGE:${{ steps.pr.outputs.tag }}" --format '{{.Manifest.Digest}}')
+          echo "ref=$IMAGE@$DIGEST" >> "$GITHUB_OUTPUT"
+
+      - name: Sign PR preview image with Cosign
+        if: (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'deploy'))
+        run: |
+          cosign sign --yes --recursive "${{ steps.push-pr.outputs.ref }}"
+
+      - name: Sign release image with Cosign
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
-          cosign sign --yes --recursive "${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.version }}@${{ steps.build.outputs.digest }}"
+          cosign sign --yes --recursive "${{ steps.push.outputs.ref }}"
 
-      - name: Verify signature
+      - name: Verify release image signature
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
           cosign verify "${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.version }}" \
+            --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+            --certificate-identity "https://github.com/${{ github.repository }}/.github/workflows/build-and-publish.yaml@${{ github.ref }}"
+
+      - name: VerifyPR preview image signature
+        if: (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'deploy'))
+        run: |
+          cosign verify "${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.pr.outputs.tag }}" \
             --certificate-oidc-issuer https://token.actions.githubusercontent.com \
             --certificate-identity "https://github.com/${{ github.repository }}/.github/workflows/build-and-publish.yaml@${{ github.ref }}"
