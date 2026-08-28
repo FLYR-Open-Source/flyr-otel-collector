@@ -3,7 +3,7 @@ dist:
   description: Custom OpenTelemetry Collector with FLYR datadog_tags processor
   output_path: ./_build
   module: github.com/FLYR-Open-Source/flyr-otel-collector
-  version: 0.3.0
+  version: 0.3.1
 receivers:
   - gomod: go.opentelemetry.io/collector/receiver/otlpreceiver v0.159.0
   - gomod: >-
