@@ -1,4 +1,5 @@
-# Allowlist: the image only needs the prebuilt binary, so keep the build
-# context to that one file.
+# Allowlist: the image only needs the prebuilt binary and the default
+# collector config, so keep the build context to those files.
 *
 !_build/flyr-otel-collector
+!config.yaml
