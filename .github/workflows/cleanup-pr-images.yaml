@@ -1,0 +1,38 @@
+name: Clean up PR images
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  delete-pr-images:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - name: Delete GHCR versions tagged <pr-number>-*
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PREFIX: pr-${{ github.event.pull_request.number }}-
+          BASE: /orgs/${{ github.repository_owner }}/packages/container/${{ github.event.repository.name }}
+        run: |
+          set -euo pipefail
+
+          ids=$(
+            (gh api --paginate "$BASE/versions?per_page=100" 2>/dev/null || echo '[]') \
+              | jq -r -s --arg p "$PREFIX" \
+                  'add // [] | map(select((.metadata.container.tags // []) | any(startswith($p)))) | .[].id'
+          )
+
+          if [ -z "$ids" ]; then
+            echo "No versions tagged ${PREFIX}* -- nothing to delete."
+            exit 0
+          fi
+
+          for id in $ids; do
+            echo "Deleting version $id"
+            gh api --method DELETE "$BASE/versions/$id"
+          done

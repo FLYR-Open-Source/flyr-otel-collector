@@ -124,24 +124,95 @@ spec:
       pipelines: ...
 ```
 
+## Verifying the images signatures
+
+> [!NOTE]
+> To verify a signed artifact or blob, first [install Cosign](https://docs.sigstore.dev/cosign/system_config/installation/), then follow the instructions below.
+
+We are signing the image using [sigstore cosign](https://github.com/sigstore/cosign) tool and to verify the signatures you can run the following command:
+
+```console
+$ cosign verify \
+  --certificate-identity=https://github.com/flyr-open-source/flyr-otel-collector/.github/workflows/build-and-publish.yaml.yaml@refs/tags/<RELEASE_TAG> \
+  --certificate-oidc-issuer=https://token.actions.githubusercontent.com \
+  <OTEL_COLLECTOR_IMAGE>
+```
+
+where:
+
+- `<RELEASE_TAG>`: is the release that you want to validate
+- `<OTEL_COLLECTOR_IMAGE>`: is the image that you want to check
+
+Example:
+
+TBD:
+
+```console
+
+```
+
+> [!NOTE]
+> We started signing the images with release `v0.95.0`
+
 ## CI/CD
 
 `.github/workflows/build-and-publish.yaml` runs on every PR, push to the
 default branch, and `v*.*.*` tag:
 
 1. Builds the Docker image once, tagged with `dist.version`,
-   `dist.version-<sha>`, and `latest`, and loads it into the local Docker
-   daemon (no push yet).
+   `<otel-version>-flyr-<dist.version>`, `dist.version-<sha>`, and
+   `latest`, and loads it into the local Docker daemon (no push yet).
 2. Runs `scripts/smoke-test.sh` against that exact image: starts it with
    `config.yaml` via `docker-compose.smoke-test.yaml`, sends test
    traces/logs via `telemetrygen` (pinned to the same OTel version as
    `builder-config.yaml`), and asserts `ddtags` was populated correctly in
    both the trace and log output.
-3. On anything other than a PR, pushes the already-built image (no
-   rebuild) to GHCR under the same three tags — the exact artifact that
-   was smoke-tested.
+3. Scans the image with Trivy and uploads the results as a
+   `trivy-results` SARIF artifact. Findings are reported, not enforced —
+   they never fail the build.
 4. On a `v*.*.*` tag push, verifies the tag matches `dist.version` in
-   `builder-config.yaml` before building — a mismatch fails the job.
+   `builder-config.yaml` before building — a mismatch fails the job — then
+   pushes the already-built image (no rebuild) to GHCR under all four tags
+   and signs it with Cosign.
+
+Pushes to `main` and pull requests build and smoke-test the image but
+publish nothing, unless the PR is labelled `deploy` (see below).
+
+### Preview images from a pull request
+
+Add the `deploy` label to a pull request to publish its image to GHCR:
+
+```text
+ghcr.io/flyr-open-source/flyr-otel-collector:pr-<pr-number>-<short-sha>
+```
+
+where `<short-sha>` is the first 7 characters of the PR's head commit.
+
+1. Open the pull request as usual.
+2. Add the `deploy` label. This starts a build and, once the smoke test
+   passes, pushes the preview tag.
+3. Pull the image, or reference it from an `OpenTelemetryCollector`
+   resource's `spec.image`:
+
+   ```console
+   $ docker pull ghcr.io/flyr-open-source/flyr-otel-collector:pr-42-9f1c3a0
+   ```
+
+4. Push more commits as normal. While the label is present, every push
+   republishes a new preview tag for that commit; earlier ones remain
+   until the PR closes.
+5. Close or merge the PR. `.github/workflows/cleanup-pr-images.yaml`
+   deletes every `pr-<pr-number>-*` tag, so previews do not accumulate.
+
+Notes:
+
+- Only the preview tag is pushed. `latest` and the release tags stay
+  tag-push-only, so a PR can never overwrite a release.
+- Preview images are **not** Cosign-signed — they are disposable and
+  short-lived. Only release images carry signatures.
+- Adding a label requires write access to the repository, so this is
+  effectively maintainer-gated. Fork PRs cannot publish: GitHub issues a
+  read-only token to fork PR runs, so the publish steps are skipped.
 
 ## Releasing
 

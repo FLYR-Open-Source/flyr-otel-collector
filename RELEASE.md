@@ -13,7 +13,6 @@ the image tags also carry the pinned OpenTelemetry Collector version — see
 > [!NOTE]
 > You can find the OpenTelemetry contrib release dates here: [https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/release.md#release-schedule](https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/release.md#release-schedule)
 
-
 ## Cutting a release
 
 1. Land work on `main` using [Conventional

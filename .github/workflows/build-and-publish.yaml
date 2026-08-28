@@ -6,6 +6,7 @@ on:
     tags: ["v*.*.*"]
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened, labeled]
 
 env:
   REGISTRY: ghcr.io
@@ -18,6 +19,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -47,6 +49,14 @@ jobs:
             exit 1
           fi
 
+      - name: Compute PR image tag
+        id: pr
+        if: github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'deploy')
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: echo "tag=pr-${PR_NUMBER}-${HEAD_SHA:0:7}" >> "$GITHUB_OUTPUT"
+
       - name: Set up Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
@@ -72,7 +82,15 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
 
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3
+
+      - name: Cosign verify distroless
+        run: |
+          cosign dockerfile verify Dockerfile --certificate-oidc-issuer https://accounts.google.com  --certificate-identity keyless@distroless.iam.gserviceaccount.com --base-image-only=true
+
       - name: Build image
+        id: build
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           context: .
@@ -83,6 +101,7 @@ jobs:
             ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.otel_version }}-flyr-${{ steps.version.outputs.version }}
             ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.version }}-${{ github.sha }}
             ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:latest
+            ${{ steps.pr.outputs.tag && format('{0}/{1}:{2}', env.REGISTRY, steps.image.outputs.name, steps.pr.outputs.tag) || '' }}
 
       - name: Run smoke test
         env:
@@ -101,8 +120,24 @@ jobs:
           COLLECTOR_IMAGE: ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.version }}-${{ github.sha }}
         run: docker compose -f docker-compose.smoke-test.yaml -p otel-smoke-test down --volumes --remove-orphans || true
 
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # 0.36.0
+        with:
+          scan-type: "image"
+          image-ref: ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.version }}-${{ github.sha }}
+          hide-progress: false
+          format: "sarif"
+          output: "trivy-results.sarif"
+
+      - name: Upload Trivy results
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        id: upload-artifact
+        with:
+          name: trivy-results
+          path: trivy-results.sarif
+
       - name: Log in to GHCR
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'deploy'))
         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           registry: ${{ env.REGISTRY }}
@@ -110,9 +145,35 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Push image
+        id: push
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
-          docker push "${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.version }}"
-          docker push "${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.otel_version }}-flyr-${{ steps.version.outputs.version }}"
-          docker push "${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.version }}-${{ github.sha }}"
-          docker push "${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:latest"
+          IMAGE="${{ env.REGISTRY }}/${{ steps.image.outputs.name }}"
+          docker push "$IMAGE:${{ steps.version.outputs.version }}"
+          docker push "$IMAGE:${{ steps.version.outputs.otel_version }}-flyr-${{ steps.version.outputs.version }}"
+          docker push "$IMAGE:${{ steps.version.outputs.version }}-${{ github.sha }}"
+          docker push "$IMAGE:latest"
+
+          # All four tags are the same manifest and cosign keys signatures by
+          # digest, so one signature covers every tag.
+          DIGEST=$(docker buildx imagetools inspect "$IMAGE:${{ steps.version.outputs.version }}" --format '{{.Manifest.Digest}}')
+          echo "ref=$IMAGE@$DIGEST" >> "$GITHUB_OUTPUT"
+
+      - name: Push PR preview image
+        id: push-pr
+        if: (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'deploy'))
+        run: |
+          IMAGE="${{ env.REGISTRY }}/${{ steps.image.outputs.name }}"
+          docker push "$IMAGE:${{ steps.pr.outputs.tag }}"
+
+      - name: Sign with Cosign
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          cosign sign --yes --recursive "${{ steps.push.outputs.ref }}"
+
+      - name: Verify signature
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          cosign verify "${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.version }}" \
+            --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+            --certificate-identity "https://github.com/${{ github.repository }}/.github/workflows/build-and-publish.yaml@${{ github.ref }}"
