@@ -148,11 +148,19 @@ Example:
 TBD:
 
 ```console
+cosign verify --certificate-identity=https://github.com/FLYR-Open-Source/flyr-otel-collector/.github/workflows/build-and-publish.yaml@refs/tags/v0.3.1 --certificate-oidc-issuer=https://token.actions.githubusercontent.com ghcr.io/flyr-open-source/flyr-otel-collector:0.159.0-flyr-0.3.1
 
+Verification for ghcr.io/flyr-open-source/flyr-otel-collector:0.159.0-flyr-0.3.1 --
+The following checks were performed on each of these signatures:
+  - The cosign claims were validated
+  - Existence of the claims in the transparency log was verified offline
+  - The code-signing certificate was verified using trusted certificate authority certificates
+
+[{"critical":{"identity":{"docker-reference":"ghcr.io/flyr-open-source/flyr-otel-collector:0.159.0-flyr-0.3.1"},"image":{"docker-manifest-digest":"sha256:49d0f8f0fc3c6fad764ca5910def8f230e5a009e36c8c8811494d672044a70f8"},"type":"https://sigstore.dev/cosign/sign/v1"},"optional":{}}]
 ```
 
 > [!NOTE]
-> We started signing the images with release `v0.95.0`
+> We started signing the images with release `v0.3.1`
 
 ## CI/CD
 
