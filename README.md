@@ -143,6 +143,17 @@ where:
 - `<RELEASE_TAG>`: is the release that you want to validate
 - `<OTEL_COLLECTOR_IMAGE>`: is the image that you want to check
 
+Example:
+
+TBD:
+
+```console
+
+```
+
+> [!NOTE]
+> We started signing the images with release `v0.95.0`
+
 ## CI/CD
 
 `.github/workflows/build-and-publish.yaml` runs on every PR, push to the

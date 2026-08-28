@@ -150,16 +150,6 @@ jobs:
           IMAGE="${{ env.REGISTRY }}/${{ steps.image.outputs.name }}"
           docker push "$IMAGE:${{ steps.pr.outputs.tag }}"
 
-          # The registry manifest digest, which is what cosign signs. It differs
-          # from the build step's digest -- that build never pushed anything.
-          DIGEST=$(docker buildx imagetools inspect "$IMAGE:${{ steps.pr.outputs.tag }}" --format '{{.Manifest.Digest}}')
-          echo "ref=$IMAGE@$DIGEST" >> "$GITHUB_OUTPUT"
-
-      - name: Sign PR preview image with Cosign
-        if: (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'deploy'))
-        run: |
-          cosign sign --yes --recursive "${{ steps.push-pr.outputs.ref }}"
-
       - name: Sign release image with Cosign
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
@@ -169,12 +159,5 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
           cosign verify "${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.version }}" \
-            --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-            --certificate-identity "https://github.com/${{ github.repository }}/.github/workflows/build-and-publish.yaml@${{ github.ref }}"
-
-      - name: VerifyPR preview image signature
-        if: (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'deploy'))
-        run: |
-          cosign verify "${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.pr.outputs.tag }}" \
             --certificate-oidc-issuer https://token.actions.githubusercontent.com \
             --certificate-identity "https://github.com/${{ github.repository }}/.github/workflows/build-and-publish.yaml@${{ github.ref }}"
