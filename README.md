@@ -124,6 +124,25 @@ spec:
       pipelines: ...
 ```
 
+## Verifying the images signatures
+
+> [!NOTE]
+> To verify a signed artifact or blob, first [install Cosign](https://docs.sigstore.dev/cosign/system_config/installation/), then follow the instructions below.
+
+We are signing the image using [sigstore cosign](https://github.com/sigstore/cosign) tool and to verify the signatures you can run the following command:
+
+```console
+$ cosign verify \
+  --certificate-identity=https://github.com/flyr-open-source/flyr-otel-collector/.github/workflows/build-and-publish.yaml.yaml@refs/tags/<RELEASE_TAG> \
+  --certificate-oidc-issuer=https://token.actions.githubusercontent.com \
+  <OTEL_COLLECTOR_IMAGE>
+```
+
+where:
+
+- `<RELEASE_TAG>`: is the release that you want to validate
+- `<OTEL_COLLECTOR_IMAGE>`: is the image that you want to check
+
 ## CI/CD
 
 `.github/workflows/build-and-publish.yaml` runs on every PR, push to the
