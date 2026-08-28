@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/FLYR-Open-Source/flyr-otel-collector/compare/v0.3.0...v0.3.1) (2026-08-28)
+
+
+### Bug Fixes
+
+* docker image ([#31](https://github.com/FLYR-Open-Source/flyr-otel-collector/issues/31)) ([449f739](https://github.com/FLYR-Open-Source/flyr-otel-collector/commit/449f7395ed990fa95d066cd6797cdcfba47ac214))
+
 ## [0.3.0](https://github.com/FLYR-Open-Source/flyr-otel-collector/compare/v0.2.0...v0.3.0) (2026-08-27)
 
 
