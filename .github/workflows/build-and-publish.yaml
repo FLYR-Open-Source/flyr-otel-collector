@@ -55,7 +55,7 @@ jobs:
         env:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: echo "tag=${PR_NUMBER}-${HEAD_SHA:0:7}" >> "$GITHUB_OUTPUT"
+        run: echo "tag=pr-${PR_NUMBER}-${HEAD_SHA:0:7}" >> "$GITHUB_OUTPUT"
 
       - name: Set up Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
@@ -120,6 +120,22 @@ jobs:
           COLLECTOR_IMAGE: ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.version }}-${{ github.sha }}
         run: docker compose -f docker-compose.smoke-test.yaml -p otel-smoke-test down --volumes --remove-orphans || true
 
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
+        with:
+          scan-type: "image"
+          image-ref: ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.version }}-${{ github.sha }}
+          hide-progress: false
+          format: "sarif"
+          output: "trivy-results.sarif"
+
+      - name: Upload Trivy results
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        id: upload-artifact
+        with:
+          name: trivy-results
+          path: trivy-results.sarif
+
       - name: Log in to GHCR
         if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'deploy'))
         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
@@ -150,12 +166,12 @@ jobs:
           IMAGE="${{ env.REGISTRY }}/${{ steps.image.outputs.name }}"
           docker push "$IMAGE:${{ steps.pr.outputs.tag }}"
 
-      - name: Sign release image with Cosign
+      - name: Sign with Cosign
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
           cosign sign --yes --recursive "${{ steps.push.outputs.ref }}"
 
-      - name: Verify release image signature
+      - name: Verify signature
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
           cosign verify "${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.version.outputs.version }}" \
