@@ -1,8 +1,6 @@
-FROM gcr.io/distroless/base-debian12:nonroot
+FROM gcr.io/distroless/base-debian12
 
 COPY _build/flyr-otel-collector /flyr-otel-collector
-
-USER nonroot:nonroot
 
 ENTRYPOINT ["/flyr-otel-collector"]
 
