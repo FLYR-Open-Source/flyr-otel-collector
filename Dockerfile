@@ -1,9 +1,16 @@
-FROM gcr.io/distroless/base-debian12:nonroot
+FROM alpine:3.19 AS certs
+RUN apk --update add ca-certificates
 
-COPY _build/flyr-otel-collector /flyr-otel-collector
+FROM gcr.io/distroless/base:latest
 
-USER nonroot:nonroot
+ARG USER_UID=10001
+USER ${USER_UID}
+
+COPY ./config.yaml /otelcol/collector-config.yaml
+COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+COPY --chmod=755 _build/flyr-otel-collector /flyr-otel-collector
 
 ENTRYPOINT ["/flyr-otel-collector"]
+CMD ["--config", "/otelcol/collector-config.yaml"]
 
-EXPOSE 4317 4318
+EXPOSE 4317 4318 12001
