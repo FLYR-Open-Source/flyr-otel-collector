@@ -1,4 +1,4 @@
-FROM alpine:3.19 AS certs
+FROM alpine:3.24 AS certs
 RUN apk --update add ca-certificates
 
 FROM gcr.io/distroless/base:latest
