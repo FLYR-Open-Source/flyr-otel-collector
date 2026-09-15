@@ -44,7 +44,7 @@ processors:
   - gomod: go.opentelemetry.io/collector/processor/memorylimiterprocessor v0.159.0
   - gomod: >-
       github.com/open-telemetry/opentelemetry-collector-contrib/processor/k8sattributesprocessor
-      v0.159.0
+      v1.0.0
   - gomod: >-
       github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor
       v0.159.0
